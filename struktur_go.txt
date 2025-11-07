@@ -1,0 +1,67 @@
+Folder PATH listing for volume Data
+Volume serial number is EB4B-F9DE
+D:.
+¦   .env
+¦   .gitignore
+¦   go.mod
+¦   go.sum
+¦   main.go
+¦   struktur_go.txt
+¦   
++---app
+¦   +---handlers
+¦   ¦       alumni.go
+¦   ¦       auth_handlers.go
+¦   ¦       pekerjaan.go
+¦   ¦       
+¦   +---models
+¦   ¦       alumni.go
+¦   ¦       alumni_mgdb.go
+¦   ¦       auth.go
+¦   ¦       pekerjaan.go
+¦   ¦       pekerjaan_mgdb.go
+¦   ¦       response.go
+¦   ¦       user.go
+¦   ¦       
+¦   +---repository
+¦   ¦       alumni_mgdb_repository.go
+¦   ¦       alumni_repository.go
+¦   ¦       pekerjaan_mgdb_repository.go
+¦   ¦       pekerjaan_repository.go
+¦   ¦       user_repository.go
+¦   ¦       
+¦   +---service
+¦           alumni_mgdb_service.go
+¦           alumni_service.go
+¦           common.go
+¦           pekerjaan_mgdb_service.go
+¦           pekerjaan_service.go
+¦           user_service.go
+¦           
++---cmd
+¦   +---genhash
+¦           main.go
+¦           
++---config
+¦       env.go
+¦       jwt.go
+¦       
++---database
+¦       mongo.go
+¦       postgres.go
+¦       
++---helper
+¦       response.go
+¦       
++---middleware
+¦       auth.go
+¦       
++---route
+¦       alumni_mgdb_route.go
+¦       index.go
+¦       pekerjaan_mgdb_route.go
+¦       
++---utils
+        jwt.go
+        password.go
+        

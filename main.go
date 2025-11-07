@@ -11,6 +11,8 @@ import (
 	"go_clean/config"
 	"go_clean/database"
 	"go_clean/route"
+	"go_clean/app/repository"
+	"go_clean/app/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -19,17 +21,17 @@ import (
 )
 
 func main() {
-	// 1️⃣ Load env
+	// 1️ Load env
 	config.LoadEnv()
 
-	// 2️⃣ Connect ke PostgreSQL
+	// 2️ Connect ke PostgreSQL
 	database.ConnectDB()
 	defer database.DB.Close()
 
-	// 3️⃣ Connect ke MongoDB
+	// 3️ Connect ke MongoDB
 	database.ConnectMongoDB()
 
-	// 4️⃣ Setup Fiber app
+	// 4️ Setup Fiber app
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * 1024 * 1024,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -44,25 +46,30 @@ func main() {
 		},
 	})
 
-	// 5️⃣ Middleware
+	// 5️ Middleware
 	if os.Getenv("APP_ENV") != "production" {
 		app.Use(logger.New())
 	}
 	app.Use(recover.New())
 	app.Use(cors.New())
 
-	// 6️⃣ Root sederhana
+	// 6️ Root sederhana
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Welcome to Alumni API 🚀")
 	})
 
-	// 7️⃣ Register routes (Postgres + Mongo)
+	// 7️7 Register routes (Postgres + Mongo)
 	route.SetupPekerjaanMongoRoutes(app, database.MongoDB)
 	route.SetupAlumniMongoRoutes(app, database.MongoDB)
 	route.SetupRoutes(app, database.DB, database.MongoDB)
 
+	// 8 Tambahkan fitur Upload File
+	app.Static("/uploads", "./uploads") // agar file bisa diakses langsung via URL
+	uploadRepo := repository.NewFileRepository(database.MongoDB)
+	uploadService := service.NewFileService(uploadRepo, "./uploads")
+	route.SetupFileRoutes(app, uploadService)
 
-	// 8️⃣ Start server
+	// 9 Start server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
@@ -75,7 +82,7 @@ func main() {
 		}
 	}()
 
-	// 9️⃣ Graceful shutdown
+	// 10 Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
