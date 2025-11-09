@@ -13,6 +13,23 @@ type UserRepository struct {
 	DB *sql.DB
 }
 
+func (r *UserRepository) LoginRepo(identifier string) (*models.User, string, error) {
+	var u models.User
+	var hash string
+
+	err := r.DB.QueryRow(`
+		SELECT id, username, email, password_hash, role
+		FROM users
+		WHERE username = $1 OR email = $1
+	`, identifier).Scan(&u.ID, &u.Username, &u.Email, &hash, &u.Role)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return &u, hash, nil
+}
+
 func (r *UserRepository) GetByUsernameOrEmail(identifier string) (*models.User, string, error) {
 	u := models.User{}
 	var hash string

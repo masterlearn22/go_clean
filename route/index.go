@@ -2,7 +2,6 @@ package route
 
 import (
 	"database/sql"
-	"go_clean/app/handlers"
 	"go_clean/app/repository"
 	"go_clean/app/service"
 	"go_clean/middleware"
@@ -29,15 +28,13 @@ func SetupRoutes(app *fiber.App, db *sql.DB, mongoDB *mongo.Database) {
 	// =======================
 	// ROOT
 	// =======================
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Welcome to the Alumni Management API 🚀")
-	})
+
 
 	// =======================
 	// PUBLIC
 	// =======================
 	api := app.Group("/api")
-	api.Post("/login", handlers.Login)
+	api.Post("/login", userService.LoginUser)
 	api.Post("/register", userService.RegisterUser)
 
 	// =======================
@@ -46,7 +43,8 @@ func SetupRoutes(app *fiber.App, db *sql.DB, mongoDB *mongo.Database) {
 	auth := api.Group("", middleware.AuthRequired())
 
 	auth.Post("/register-admin", middleware.AdminOnly(), userService.AdminCreateUser)
-	auth.Get("/profile", handlers.Profile)
+	auth.Get("/pekerjaan-pag", pekerjaanService.GetPekerjaanList)
+	auth.Get("/alumni-pag", alumniService.GetAlumniList)
 
 	// =======================
 	// ALUMNI ROUTES (Postgres)
@@ -55,7 +53,7 @@ func SetupRoutes(app *fiber.App, db *sql.DB, mongoDB *mongo.Database) {
 	alumni.Get("/", alumniService.GetAllAlumni)
 	alumni.Get("/:id", alumniService.GetAlumniByID)
 	alumni.Get("/angkatan/:angkatan", alumniService.GetAlumniByAngkatan)
-	alumni.Get("/alumni-pag", handlers.GetAlumniListHandler)
+	
 	alumni.Get("/with-pekerjaan/:nim", alumniService.GetAlumniAndPekerjaan)
 
 	alumniAdmin := alumni.Group("", middleware.AdminOnly())
@@ -81,5 +79,5 @@ func SetupRoutes(app *fiber.App, db *sql.DB, mongoDB *mongo.Database) {
 	// =======================
 	// PAGINATION
 	// =======================
-	api.Get("/pekerjaan-pag", handlers.GetPekerjaanListHandler)
+	
 }

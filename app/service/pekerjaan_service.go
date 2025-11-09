@@ -63,7 +63,7 @@ func (s *PekerjaanService) GetPekerjaanByID(c *fiber.Ctx) error {
 }
 
 // Ambil list pekerjaan dengan search, sort, pagination (mirip AlumniService)
-func GetPekerjaanList(c *fiber.Ctx) error {
+func (s *PekerjaanService) GetPekerjaanList(c *fiber.Ctx) error {
 	sortable := repository.PekerjaanSortable()
 	params := getListParams(c, sortable)
 

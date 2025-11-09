@@ -21,6 +21,16 @@ func (s *AlumniMongoService) Create(ctx context.Context, data *models.AlumniMong
 	return s.repo.Create(ctx, data)
 }
 
+// GetAllAlumni godoc
+// @Summary Dapatkan semua alumni
+// @Description Mengambil daftar semua alumni dari database
+// @Tags Alumni
+// @Security BearerAuth 
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Alumni
+// @Failure 500 {object} models.ErrorResponse
+// @Router /alumni [get]
 func (s *AlumniMongoService) GetAll(ctx context.Context) ([]models.AlumniMongo, error) {
 	return s.repo.FindAll(ctx)
 }

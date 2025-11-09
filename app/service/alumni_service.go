@@ -29,7 +29,7 @@ func (s *AlumniService) GetAllAlumni(c *fiber.Ctx) error {
 	})
 }
 
-func GetAlumniList(c *fiber.Ctx) error {
+func (s *AlumniService) GetAlumniList(c *fiber.Ctx) error {
 	sortable := make(map[string]bool)
 	for _, v := range repository.AlumniSortable() {
 		sortable[v] = true

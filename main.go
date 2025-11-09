@@ -18,7 +18,22 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	 fiberSwagger "github.com/swaggo/fiber-swagger"
+
+	docs "go_clean/docs"
 )
+
+// @title User API
+// @version 1.0
+// @description API untuk mengelola data user dengan MongoDB menggunakan Clean Architecture
+// @host localhost:3000
+// @BasePath /api/v1
+// @schemes http
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 
 func main() {
 	// 1️ Load env
@@ -45,6 +60,9 @@ func main() {
 			})
 		},
 	})
+
+	docs.SwaggerInfo.BasePath = "/api/v1"
+    app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	// 5️ Middleware
 	if os.Getenv("APP_ENV") != "production" {
