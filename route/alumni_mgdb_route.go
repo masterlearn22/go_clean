@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func SetupAlumniMongoRoutes(app *fiber.App, mongoDB *mongo.Database) {
@@ -59,6 +60,10 @@ func SetupAlumniMongoRoutes(app *fiber.App, mongoDB *mongo.Database) {
 		if err := c.BodyParser(&input); err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "JSON tidak valid"})
 		}
+		// kosongkan field yang tidak boleh berasal dari user
+		input.ID = primitive.NilObjectID
+		input.CreatedAt = time.Now()
+		input.UpdatedAt = time.Now()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

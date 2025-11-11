@@ -68,7 +68,16 @@ func isEmail(s string) bool {
 	return err == nil
 }
 
-// LOGIN USER (PUBLIC)
+// Login godoc
+// @Summary Login user
+// @Description Mengembalikan JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login Data"
+// @Success 200 {object} models.LoginResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /login [post]
 func (s *UserService) LoginUser(c *fiber.Ctx) error {
 	var req models.LoginRequest
 

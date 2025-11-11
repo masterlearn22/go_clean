@@ -1,17 +1,15 @@
 basePath: /api/v1
 definitions:
-  models.Alumni:
+  models.AlumniMongo:
     properties:
       alamat:
         type: string
+      alumni_id:
+        type: integer
       angkatan:
         type: integer
-      created_at:
-        type: string
       email:
         type: string
-      id:
-        type: integer
       jurusan:
         type: string
       nama:
@@ -22,7 +20,7 @@ definitions:
         type: string
       tahun_lulus:
         type: integer
-      updated_at:
+      tempat_kerja:
         type: string
     type: object
   models.ErrorResponse:
@@ -32,6 +30,64 @@ definitions:
       status:
         type: boolean
     type: object
+  models.LoginRequest:
+    properties:
+      password:
+        example: "1234567890"
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  models.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.PekerjaanMongo:
+    properties:
+      alumni_id:
+        type: integer
+      bidang_industri:
+        type: string
+      deleted_at:
+        type: string
+      deleted_by:
+        type: string
+      deskripsi_pekerjaan:
+        type: string
+      gaji_range:
+        type: string
+      is_delete:
+        type: boolean
+      lokasi_kerja:
+        type: string
+      nama_perusahaan:
+        type: string
+      posisi_jabatan:
+        type: string
+      status_pekerjaan:
+        type: string
+      tanggal_mulai_kerja:
+        type: string
+      tanggal_selesai_kerja:
+        type: string
+    type: object
+  models.User:
+    properties:
+      alumni_id:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact: {}
@@ -39,10 +95,8 @@ info:
   title: User API
   version: "1.0"
 paths:
-  /alumni:
+  /alumni-mongo:
     get:
-      consumes:
-      - application/json
       description: Mengambil daftar semua alumni dari database
       produces:
       - application/json
@@ -51,7 +105,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Alumni'
+              $ref: '#/definitions/models.AlumniMongo'
             type: array
         "500":
           description: Internal Server Error
@@ -61,7 +115,333 @@ paths:
       - BearerAuth: []
       summary: Dapatkan semua alumni
       tags:
-      - Alumni
+      - Alumni-Mongo
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data alumni ke database MongoDB
+      parameters:
+      - description: Data alumni
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AlumniMongo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AlumniMongo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambahkan alumni baru
+      tags:
+      - Alumni-Mongo
+  /alumni-mongo/{id}:
+    delete:
+      description: Menghapus data alumni dari database berdasarkan ID
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus alumni
+      tags:
+      - Alumni-Mongo
+    get:
+      description: Mengambil satu alumni berdasarkan ID MongoDB
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AlumniMongo'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dapatkan alumni berdasarkan ID
+      tags:
+      - Alumni-Mongo
+    put:
+      consumes:
+      - application/json
+      description: Mengubah data alumni berdasarkan ID
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data alumni baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AlumniMongo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AlumniMongo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update data alumni
+      tags:
+      - Alumni-Mongo
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Mengembalikan JWT token
+      parameters:
+      - description: Login Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /pekerjaan-mongo:
+    get:
+      description: Mengambil semua data pekerjaan di MongoDB
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PekerjaanMongo'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua data pekerjaan
+      tags:
+      - Pekerjaan-Mongo
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data pekerjaan ke MongoDB
+      parameters:
+      - description: Data pekerjaan
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PekerjaanMongo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PekerjaanMongo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambahkan data pekerjaan baru
+      tags:
+      - Pekerjaan-Mongo
+  /pekerjaan-mongo/{id}:
+    delete:
+      description: Menghapus data pekerjaan dari database berdasarkan ID
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus pekerjaan
+      tags:
+      - Pekerjaan-Mongo
+    get:
+      description: Mengambil satu pekerjaan berdasarkan ObjectID MongoDB
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PekerjaanMongo'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dapatkan pekerjaan berdasarkan ID
+      tags:
+      - Pekerjaan-Mongo
+    put:
+      consumes:
+      - application/json
+      description: Mengubah data pekerjaan berdasarkan ID
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data pekerjaan baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PekerjaanMongo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PekerjaanMongo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update data pekerjaan
+      tags:
+      - Pekerjaan-Mongo
+  /pekerjaan-mongo/alumni/{alumni_id}:
+    get:
+      description: Mengambil semua pekerjaan berdasarkan AlumniID
+      parameters:
+      - description: ID Alumni
+        in: path
+        name: alumni_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PekerjaanMongo'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dapatkan daftar pekerjaan berdasarkan AlumniID
+      tags:
+      - Pekerjaan-Mongo
 schemes:
 - http
 securityDefinitions:
@@ -70,3 +450,10 @@ securityDefinitions:
     name: Authorization
     type: apiKey
 swagger: "2.0"
+tags:
+- description: Endpoint untuk autentikasi dan login user
+  name: Auth
+- description: Endpoint untuk data alumni
+  name: Alumni-Mongo
+- description: Endpoint untuk data pekerjaan alumni (MongoDB)
+  name: Pekerjaan-Mongo

@@ -1,5 +1,23 @@
 package main
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @tag.name Auth
+// @tag.description Endpoint untuk autentikasi dan login user
+// @tag.order 1
+
+// @tag.name Alumni-Mongo
+// @tag.description Endpoint untuk data alumni
+// @tag.order 2
+
+// @tag.name Pekerjaan-Mongo
+// @tag.description Endpoint untuk data pekerjaan alumni (MongoDB)
+// @tag.order 3
+
+
+
 import (
 	"context"
 	"log"
@@ -21,6 +39,7 @@ import (
 	 fiberSwagger "github.com/swaggo/fiber-swagger"
 
 	docs "go_clean/docs"
+	_ "go_clean/docs"
 )
 
 // @title User API
@@ -61,8 +80,10 @@ func main() {
 		},
 	})
 
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/api"
     app.Get("/swagger/*", fiberSwagger.WrapHandler)
+	log.Println("➡️  Swagger UI available at: http://localhost:" + os.Getenv("APP_PORT") + "/swagger/index.html")
+
 
 	// 5️ Middleware
 	if os.Getenv("APP_ENV") != "production" {
