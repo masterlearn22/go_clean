@@ -1,5 +1,37 @@
 basePath: /api/v1
 definitions:
+  models.Alumni:
+    properties:
+      alamat:
+        type: string
+      angkatan:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      jurusan:
+        type: string
+      nama:
+        type: string
+      nim:
+        type: string
+      no_telepon:
+        type: string
+      tahun_lulus:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.AlumniAngkatan:
+    properties:
+      angkatan:
+        type: integer
+      jumlah:
+        type: integer
+    type: object
   models.AlumniMongo:
     properties:
       alamat:
@@ -22,6 +54,31 @@ definitions:
         type: integer
       tempat_kerja:
         type: string
+    type: object
+  models.AlumniPekerjaan:
+    properties:
+      angkatan:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      jurusan:
+        type: string
+      nama:
+        type: string
+      nama_perusahaan:
+        type: string
+      nim:
+        type: string
+      posisi_jabatan:
+        type: string
+      tahun_lulus:
+        type: integer
+      tanggal_mulai_kerja:
+        type: integer
+      tanggal_selesai_kerja:
+        type: integer
     type: object
   models.ErrorResponse:
     properties:
@@ -62,6 +119,23 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
+    type: object
+  models.MetaInfo:
+    properties:
+      limit:
+        type: integer
+      order:
+        type: string
+      page:
+        type: integer
+      pages:
+        type: integer
+      search:
+        type: string
+      sortBy:
+        type: string
+      total:
+        type: integer
     type: object
   models.PekerjaanMongo:
     properties:
@@ -105,6 +179,15 @@ definitions:
       username:
         type: string
     type: object
+  models.UserResponse-models_Alumni:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Alumni'
+        type: array
+      meta:
+        $ref: '#/definitions/models.MetaInfo'
+    type: object
 host: localhost:3000
 info:
   contact: {}
@@ -112,6 +195,58 @@ info:
   title: User API
   version: "1.0"
 paths:
+  /alumni:
+    get:
+      description: Menampilkan semua alumni dari database PostgreSQL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Alumni'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil semua data alumni (PostgreSQL)
+      tags:
+      - Alumni-PostgresSQL
+    post:
+      consumes:
+      - application/json
+      description: Insert data alumni ke database PostgreSQL
+      parameters:
+      - description: Data alumni baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Alumni'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Alumni'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah alumni baru
+      tags:
+      - Alumni-PostgresSQL
   /alumni-mongo:
     get:
       description: Mengambil daftar semua alumni dari database
@@ -259,6 +394,179 @@ paths:
       summary: Update data alumni
       tags:
       - Alumni-Mongo
+  /alumni-pag:
+    get:
+      description: Pagination + sorting + search alumni berdasarkan nama atau NIM
+      parameters:
+      - description: cari nama atau nim
+        in: query
+        name: search
+        type: string
+      - description: sort berdasarkan kolom (nim,nama,jurusan,angkatan)
+        in: query
+        name: sortBy
+        type: string
+      - description: asc atau desc
+        in: query
+        name: order
+        type: string
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Limit data
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse-models_Alumni'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Dapatkan alumni dengan pagination, sorting & searching
+      tags:
+      - Alumni-PostgresSQL
+  /alumni/{id}:
+    delete:
+      description: Menghapus data alumni berdasarkan ID
+      parameters:
+      - description: ID Alumni
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus alumni
+      tags:
+      - Alumni-PostgresSQL
+    get:
+      description: Mengambil satu alumni dari PostgreSQL berdasarkan ID
+      parameters:
+      - description: ID Alumni
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Alumni'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil alumni berdasarkan ID
+      tags:
+      - Alumni-PostgresSQL
+    put:
+      consumes:
+      - application/json
+      description: Mengubah data alumni berdasarkan ID
+      parameters:
+      - description: ID Alumni
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data alumni baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Alumni'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Alumni'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update alumni
+      tags:
+      - Alumni-PostgresSQL
+  /alumni/angkatan/{angkatan}:
+    get:
+      description: Mengambil jumlah alumni berdasarkan angkatan tertentu
+      parameters:
+      - description: Tahun angkatan
+        in: path
+        name: angkatan
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AlumniAngkatan'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil alumni berdasarkan angkatan
+      tags:
+      - Alumni-PostgresSQL
+  /alumni/detail/{nim}:
+    get:
+      description: Join data alumni & pekerjaan dari PostgreSQL
+      parameters:
+      - description: NIM Alumni
+        in: path
+        name: nim
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AlumniPekerjaan'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil alumni beserta data pekerjaan
+      tags:
+      - Alumni-PostgresSQL
   /files/:
     get:
       produces:
@@ -580,3 +888,5 @@ tags:
   name: Pekerjaan-Mongo
 - description: Upload, lihat dan hapus file
   name: FileUpload
+- description: Upload, lihat dan hapus file
+  name: Alumni-PostgresSQL

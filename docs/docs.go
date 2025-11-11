@@ -15,6 +15,89 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/alumni": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menampilkan semua alumni dari database PostgreSQL",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Ambil semua data alumni (PostgreSQL)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Alumni"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Insert data alumni ke database PostgreSQL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Tambah alumni baru",
+                "parameters": [
+                    {
+                        "description": "Data alumni baru",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Alumni"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Alumni"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/alumni-mongo": {
             "get": {
                 "security": [
@@ -240,6 +323,280 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/alumni-pag": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Pagination + sorting + search alumni berdasarkan nama atau NIM",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Dapatkan alumni dengan pagination, sorting \u0026 searching",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cari nama atau nim",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort berdasarkan kolom (nim,nama,jurusan,angkatan)",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "asc atau desc",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit data",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserResponse-models_Alumni"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/alumni/angkatan/{angkatan}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil jumlah alumni berdasarkan angkatan tertentu",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Ambil alumni berdasarkan angkatan",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tahun angkatan",
+                        "name": "angkatan",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AlumniAngkatan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/alumni/detail/{nim}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Join data alumni \u0026 pekerjaan dari PostgreSQL",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Ambil alumni beserta data pekerjaan",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "NIM Alumni",
+                        "name": "nim",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AlumniPekerjaan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/alumni/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil satu alumni dari PostgreSQL berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Ambil alumni berdasarkan ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Alumni",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Alumni"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah data alumni berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Update alumni",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Alumni",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data alumni baru",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Alumni"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Alumni"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus data alumni berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alumni-PostgresSQL"
+                ],
+                "summary": "Hapus alumni",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Alumni",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -732,6 +1089,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.Alumni": {
+            "type": "object",
+            "properties": {
+                "alamat": {
+                    "type": "string"
+                },
+                "angkatan": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "jurusan": {
+                    "type": "string"
+                },
+                "nama": {
+                    "type": "string"
+                },
+                "nim": {
+                    "type": "string"
+                },
+                "no_telepon": {
+                    "type": "string"
+                },
+                "tahun_lulus": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AlumniAngkatan": {
+            "type": "object",
+            "properties": {
+                "angkatan": {
+                    "type": "integer"
+                },
+                "jumlah": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.AlumniMongo": {
             "type": "object",
             "properties": {
@@ -764,6 +1170,44 @@ const docTemplate = `{
                 },
                 "tempat_kerja": {
                     "type": "string"
+                }
+            }
+        },
+        "models.AlumniPekerjaan": {
+            "type": "object",
+            "properties": {
+                "angkatan": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "jurusan": {
+                    "type": "string"
+                },
+                "nama": {
+                    "type": "string"
+                },
+                "nama_perusahaan": {
+                    "type": "string"
+                },
+                "nim": {
+                    "type": "string"
+                },
+                "posisi_jabatan": {
+                    "type": "string"
+                },
+                "tahun_lulus": {
+                    "type": "integer"
+                },
+                "tanggal_mulai_kerja": {
+                    "type": "integer"
+                },
+                "tanggal_selesai_kerja": {
+                    "type": "integer"
                 }
             }
         },
@@ -825,6 +1269,32 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.MetaInfo": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "order": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "search": {
+                    "type": "string"
+                },
+                "sortBy": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -891,6 +1361,20 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.UserResponse-models_Alumni": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Alumni"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/models.MetaInfo"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -916,6 +1400,10 @@ const docTemplate = `{
         {
             "description": "Upload, lihat dan hapus file",
             "name": "FileUpload"
+        },
+        {
+            "description": "Upload, lihat dan hapus file",
+            "name": "Alumni-PostgresSQL"
         }
     ]
 }`

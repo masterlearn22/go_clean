@@ -20,6 +20,12 @@ package main
 // @tag.description Upload, lihat dan hapus file
 // @tag.order 4
 
+// @tag.name Alumni-PostgresSQL
+// @tag.description Upload, lihat dan hapus file
+// @tag.order 5
+
+
+
 
 
 
