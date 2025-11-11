@@ -30,6 +30,18 @@ func NewFileService(repo repository.FileRepository, uploadPath string) FileServi
     }
 }
 
+// UploadFile godoc
+// @Summary Upload file (PDF / Image)
+// @Description Mengupload file ke server dan menyimpan metadata ke database (MongoDB)
+// @Tags FileUpload
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File yang akan diupload"
+// @Success 201 {object} models.FileResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /files/upload [post]
 func (s *fileService) UploadFile(c *fiber.Ctx) error {
     fileHeader, err := c.FormFile("file")
     if err != nil {
@@ -102,10 +114,19 @@ func (s *fileService) UploadFile(c *fiber.Ctx) error {
     return c.Status(fiber.StatusCreated).JSON(fiber.Map{
         "success": true,
         "message": "File uploaded successfully",
-        "data":    s.toFileResponse(fileModel),
+        "data":    fileModel,
     })
 }
 
+
+// GetAllFiles godoc
+// @Summary Mendapatkan semua file yang sudah diupload
+// @Tags FileUpload
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.FileResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /files/ [get]
 func (s *fileService) GetAllFiles(c *fiber.Ctx) error {
     files, err := s.repo.FindAll()
     if err != nil {
@@ -116,18 +137,23 @@ func (s *fileService) GetAllFiles(c *fiber.Ctx) error {
         })
     }
 
-    var responses []models.FileResponse
-    for _, file := range files {
-        responses = append(responses, *s.toFileResponse(&file))
-    }
-
     return c.JSON(fiber.Map{
         "success": true,
         "message": "Files retrieved successfully",
-        "data":    responses,
+        "data":    files,
     })
 }
 
+
+// GetFileByID godoc
+// @Summary Mendapatkan file berdasarkan ID
+// @Tags FileUpload
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "File ID"
+// @Success 200 {object} models.FileResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Router /files/{id} [get]
 func (s *fileService) GetFileByID(c *fiber.Ctx) error {
     id := c.Params("id")
 
@@ -143,10 +169,20 @@ func (s *fileService) GetFileByID(c *fiber.Ctx) error {
     return c.JSON(fiber.Map{
         "success": true,
         "message": "File retrieved successfully",
-        "data":    s.toFileResponse(file),
-    })
+        "data":    file,
+    }) 
 }
-
+// DeleteFile godoc
+// @Summary Menghapus file berdasarkan ID
+// @Security BearerAuth
+// @Tags FileUpload
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "File ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /files/{id} [delete]
 func (s *fileService) DeleteFile(c *fiber.Ctx) error {
     id := c.Params("id")
 
@@ -175,16 +211,4 @@ func (s *fileService) DeleteFile(c *fiber.Ctx) error {
         "success": true,
         "message": "File deleted successfully",
     })
-}
-
-func (s *fileService) toFileResponse(file *models.File) *models.FileResponse {
-    return &models.FileResponse{
-        ID:           file.ID.Hex(),
-        FileName:     file.FileName,
-        OriginalName: file.OriginalName,
-        FilePath:     file.FilePath,
-        FileSize:     file.FileSize,
-        FileType:     file.FileType,
-        UploadedAt:   file.UploadedAt,
-    }
 }

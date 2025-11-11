@@ -16,6 +16,11 @@ package main
 // @tag.description Endpoint untuk data pekerjaan alumni (MongoDB)
 // @tag.order 3
 
+// @tag.name FileUpload
+// @tag.description Upload, lihat dan hapus file
+// @tag.order 4
+
+
 
 
 import (

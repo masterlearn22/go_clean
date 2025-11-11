@@ -30,6 +30,23 @@ definitions:
       status:
         type: boolean
     type: object
+  models.FileResponse:
+    properties:
+      file_name:
+        type: string
+      file_path:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: string
+      original_name:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
   models.LoginRequest:
     properties:
       password:
@@ -242,6 +259,110 @@ paths:
       summary: Update data alumni
       tags:
       - Alumni-Mongo
+  /files/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FileResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mendapatkan semua file yang sudah diupload
+      tags:
+      - FileUpload
+  /files/{id}:
+    delete:
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Menghapus file berdasarkan ID
+      tags:
+      - FileUpload
+    get:
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.FileResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mendapatkan file berdasarkan ID
+      tags:
+      - FileUpload
+  /files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengupload file ke server dan menyimpan metadata ke database (MongoDB)
+      parameters:
+      - description: File yang akan diupload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.FileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload file (PDF / Image)
+      tags:
+      - FileUpload
   /login:
     post:
       consumes:
@@ -457,3 +578,5 @@ tags:
   name: Alumni-Mongo
 - description: Endpoint untuk data pekerjaan alumni (MongoDB)
   name: Pekerjaan-Mongo
+- description: Upload, lihat dan hapus file
+  name: FileUpload
