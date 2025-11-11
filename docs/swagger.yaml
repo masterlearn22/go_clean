@@ -137,6 +137,41 @@ definitions:
       total:
         type: integer
     type: object
+  models.PekerjaanAlumni:
+    properties:
+      alumni_id:
+        type: integer
+      bidang_industri:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      deleted_by:
+        type: string
+      deskripsi_pekerjaan:
+        type: string
+      gaji_range:
+        type: string
+      id:
+        type: integer
+      is_delete:
+        type: boolean
+      lokasi_kerja:
+        type: string
+      nama_perusahaan:
+        type: string
+      posisi_jabatan:
+        type: string
+      status_pekerjaan:
+        type: string
+      tanggal_mulai_kerja:
+        type: string
+      tanggal_selesai_kerja:
+        type: string
+      updated_at:
+        type: string
+    type: object
   models.PekerjaanMongo:
     properties:
       alumni_id:
@@ -184,6 +219,15 @@ definitions:
       data:
         items:
           $ref: '#/definitions/models.Alumni'
+        type: array
+      meta:
+        $ref: '#/definitions/models.MetaInfo'
+    type: object
+  models.UserResponse-models_PekerjaanAlumni:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.PekerjaanAlumni'
         type: array
       meta:
         $ref: '#/definitions/models.MetaInfo'
@@ -697,6 +741,58 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /pekerjaan:
+    get:
+      description: Mengambil semua pekerjaan dari PostgreSQL (tanpa filter/pagination)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PekerjaanAlumni'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil semua data pekerjaan
+      tags:
+      - Pekerjaan-PostgresSQL
+    post:
+      consumes:
+      - application/json
+      description: Tambah pekerjaan (hanya bisa diakses Admin)
+      parameters:
+      - description: Data pekerjaan baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PekerjaanAlumni'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PekerjaanAlumni'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah data pekerjaan baru
+      tags:
+      - Pekerjaan-PostgresSQL
   /pekerjaan-mongo:
     get:
       description: Mengambil semua data pekerjaan di MongoDB
@@ -871,6 +967,234 @@ paths:
       summary: Dapatkan daftar pekerjaan berdasarkan AlumniID
       tags:
       - Pekerjaan-Mongo
+  /pekerjaan/{id}:
+    delete:
+      description: Menghapus pekerjaan (soft delete). Admin bisa hapus siapa saja,
+        User hanya boleh data miliknya.
+      parameters:
+      - description: ID Pekerjaan
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Pekerjaan berhasil dihapus
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete pekerjaan
+      tags:
+      - Pekerjaan-PostgresSQL
+    get:
+      description: Mengambil satu pekerjaan berdasarkan ID
+      parameters:
+      - description: ID Pekerjaan
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PekerjaanAlumni'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil pekerjaan berdasarkan ID
+      tags:
+      - Pekerjaan-PostgresSQL
+    put:
+      consumes:
+      - application/json
+      description: User hanya boleh update datanya sendiri, Admin boleh update data
+        siapa saja
+      parameters:
+      - description: ID Pekerjaan
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data pekerjaan baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PekerjaanAlumni'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PekerjaanAlumni'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update data pekerjaan
+      tags:
+      - Pekerjaan-PostgresSQL
+  /pekerjaan/alumni/{alumni_id}:
+    get:
+      description: Mengambil semua pekerjaan yang dimiliki alumni tertentu
+      parameters:
+      - description: ID Alumni
+        in: path
+        name: alumni_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PekerjaanAlumni'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil data pekerjaan berdasarkan ID alumni
+      tags:
+      - Pekerjaan-PostgresSQL
+  /pekerjaan/hard-delete/{id}:
+    delete:
+      description: Menghapus data secara permanen dari database
+      parameters:
+      - description: ID Pekerjaan
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Pekerjaan berhasil dihapus permanen
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus permanen pekerjaan
+      tags:
+      - Pekerjaan-PostgresSQL
+  /pekerjaan/list:
+    get:
+      description: Pagination + sorting + search pekerjaan berdasarkan nama_perusahaan
+        atau posisi_jabatan
+      parameters:
+      - description: Cari pekerjaan
+        in: query
+        name: search
+        type: string
+      - description: Kolom sorting (nama_perusahaan, posisi_jabatan)
+        in: query
+        name: sortBy
+        type: string
+      - description: asc / desc
+        in: query
+        name: order
+        type: string
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Limit data
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse-models_PekerjaanAlumni'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil data pekerjaan dengan pagination, search, dan sorting
+      tags:
+      - Pekerjaan-PostgresSQL
+  /pekerjaan/restore/{id}:
+    put:
+      description: Mengembalikan pekerjaan (soft delete → active)
+      parameters:
+      - description: ID Pekerjaan
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Pekerjaan berhasil direstore
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore pekerjaan dari trash
+      tags:
+      - Pekerjaan-PostgresSQL
+  /pekerjaan/trash:
+    get:
+      description: Admin melihat semua data trash, User hanya melihat miliknya
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PekerjaanAlumni'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Ambil semua data yang terhapus (soft delete)
+      tags:
+      - Pekerjaan-PostgresSQL
 schemes:
 - http
 securityDefinitions:

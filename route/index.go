@@ -75,9 +75,5 @@ func SetupRoutes(app *fiber.App, db *sql.DB, mongoDB *mongo.Database) {
 	pkj.Delete("/hard-delete/:id", pekerjaanService.HardDeletePekerjaan)
 	pkjAdmin := pkj.Group("", middleware.AdminOnly())
 	pkjAdmin.Post("/", pekerjaanService.CreatePekerjaan)
-
-	// =======================
-	// PAGINATION
-	// =======================
 	
 }
