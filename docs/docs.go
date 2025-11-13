@@ -1911,6 +1911,10 @@ const docTemplate = `{
         {
             "description": "Upload, lihat dan hapus file",
             "name": "Alumni-PostgresSQL"
+        },
+        {
+            "description": "Endpoint untuk data pekerjaan alumni (PostgreSQL)",
+            "name": "Pekerjaan-PostgresSQL"
         }
     ]
 }`

@@ -8,10 +8,10 @@ import (
 )
 
 type AlumniMongoService struct {
-	repo *repository.AlumniMongoRepository
+	repo repository.AlumniMongoRepositoryInterface
 }
 
-func NewAlumniMongoService(repo *repository.AlumniMongoRepository) *AlumniMongoService {
+func NewAlumniMongoService(repo repository.AlumniMongoRepositoryInterface) *AlumniMongoService {
 	return &AlumniMongoService{repo: repo}
 }
 

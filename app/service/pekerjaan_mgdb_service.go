@@ -8,10 +8,10 @@ import (
 )
 
 type PekerjaanMongoService struct {
-	repo *repository.PekerjaanMongoRepository
+	repo repository.PekerjaanMongoRepositoryInterface
 }
 
-func NewPekerjaanMongoService(repo *repository.PekerjaanMongoRepository) *PekerjaanMongoService {
+func NewPekerjaanMongoService(repo repository.PekerjaanMongoRepositoryInterface) *PekerjaanMongoService {
 	return &PekerjaanMongoService{repo: repo}
 }
 

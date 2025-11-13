@@ -24,10 +24,9 @@ package main
 // @tag.description Upload, lihat dan hapus file
 // @tag.order 5
 
-
-
-
-
+// @tag.name Pekerjaan-PostgresSQL
+// @tag.description Endpoint untuk data pekerjaan alumni (PostgreSQL)
+// @tag.order 6	
 
 import (
 	"context"

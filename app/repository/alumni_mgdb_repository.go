@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type AlumniMongoRepository struct {
@@ -78,7 +78,7 @@ func (r *AlumniMongoRepository) Update(ctx context.Context, id string, data *mod
 	}
 
 	update := bson.M{"$set": data}
-	_, err := r.collection.UpdateOne(ctx, filter, update, options.Update())
+	_, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
@@ -98,3 +98,4 @@ func (r *AlumniMongoRepository) Delete(ctx context.Context, id string) error {
 	_, err := r.collection.DeleteOne(ctx, filter)
 	return err
 }
+
