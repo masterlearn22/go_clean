@@ -8,6 +8,7 @@ import (
 	"log"
 	"go_clean/app/models"
 )
+var _ IUserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	DB *sql.DB

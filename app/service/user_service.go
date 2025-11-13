@@ -12,7 +12,7 @@ import (
 )
 
 type UserService struct {
-	Repo *repository.UserRepository
+    Repo repository.IUserRepository
 }
 
 func (s *UserService) GetUsersService(c *fiber.Ctx) error {
@@ -95,7 +95,7 @@ func (s *UserService) LoginUser(c *fiber.Ctx) error {
 
 	// ambil data user dari repository
 	u, hash, err := s.Repo.GetByUsernameOrEmail(req.Username)
-	if err != nil {
+	if err != nil {	
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "username/password salah",
 		})

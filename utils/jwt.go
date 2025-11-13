@@ -8,8 +8,14 @@ import (
 	"go_clean/config"
 )
 
+var MockGenerateToken func(u models.User) (string, error)
 
 func GenerateToken(u models.User) (string, error) {
+
+	if MockGenerateToken != nil {
+		return MockGenerateToken(u)
+	}
+	
 	jwtCfg := config.LoadJWT()
 	claims := models.JWTClaims{
 		UserID:   u.ID,
