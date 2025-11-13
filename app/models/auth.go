@@ -21,7 +21,7 @@ type LoginResponse struct {
 }
 
 type JWTClaims struct {
-	UserID   int    `json:"user_id"`
+	UserID   string    `json:"user_id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims

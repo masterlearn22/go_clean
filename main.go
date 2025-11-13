@@ -106,6 +106,8 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Welcome to Alumni API 🚀")
 	})
+	route.SetupAuthMongoRoutes(app, database.MongoDB)
+
 
 	// 7️7 Register routes (Postgres + Mongo)
 	route.SetupPekerjaanMongoRoutes(app, database.MongoDB)
