@@ -1,0 +1,289 @@
+package repository
+
+import (
+	"fmt"
+	"database/sql"
+	"go_clean/app/models/postgresql"
+	"time"
+	"go_clean/database"
+)
+
+type PekerjaanRepository struct {
+	DB *sql.DB
+}
+
+
+func PekerjaanSortable() map[string]bool {
+	return map[string]bool{
+		"id": true, "alumni_id": true, "nama_perusahaan": true, "posisi_jabatan": true, "tanggal_mulai_kerja": true,
+	}
+}
+
+// --- Fungsi bantu untuk sanitasi input sort/order ---
+func sanitizePekerjaanSort(s string) string {
+	switch s {
+	case "id", "alumni_id", "nama_perusahaan", "posisi_jabatan", "tanggal_mulai_kerja", "tanggal_selesai_kerja", "created_at", "updated_at":
+		return s
+	default:
+		return "id"
+	}
+}
+
+func sanitizeOrderPekerjaan(o string) string {
+	if o == "desc" || o == "DESC" {
+		return "DESC"
+	}
+	return "ASC"
+}
+
+// --- Fungsi utama untuk List & Count (mirip Alumni) ---
+
+func ListPekerjaanRepo(search, sortBy, order string, limit, offset int) ([]models.PekerjaanAlumni, error) {
+	sortBy = sanitizePekerjaanSort(sortBy)
+	order = sanitizeOrderPekerjaan(order)
+
+	query := fmt.Sprintf(`
+		SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range,
+			   tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at
+		FROM pekerjaan_alumni
+		WHERE is_delete = FALSE
+		  AND (nama_perusahaan ILIKE $1 OR posisi_jabatan ILIKE $1)
+		ORDER BY %s %s, id ASC
+		LIMIT $2 OFFSET $3
+	`, sortBy, order)
+
+	rows, err := database.DB.Query(query, "%"+search+"%", limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []models.PekerjaanAlumni
+	for rows.Next() {
+		var p models.PekerjaanAlumni
+		if err := rows.Scan(
+			&p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan, &p.BidangIndustri,
+			&p.LokasiKerja, &p.GajiRange, &p.TanggalMulaiKerja, &p.TanggalSelesaiKerja,
+			&p.StatusPekerjaan, &p.DeskripsiPekerjaan, &p.CreatedAt, &p.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, p)
+	}
+	return items, rows.Err()
+}
+
+func CountPekerjaanRepo(search string) (int, error) {
+	var total int
+	err := database.DB.QueryRow(`
+		SELECT COUNT(*)
+		FROM pekerjaan_alumni
+		WHERE is_delete = FALSE
+		  AND (nama_perusahaan ILIKE $1 OR posisi_jabatan ILIKE $1)
+	`, "%"+search+"%").Scan(&total)
+	if err != nil && err != sql.ErrNoRows {
+		return 0, err
+	}
+	return total, nil
+}
+
+
+
+func (r *PekerjaanRepository) GetAllPekerjaan() ([]models.PekerjaanAlumni, error) {
+	rows, err := r.DB.Query("SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range, tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at, is_delete FROM pekerjaan_alumni WHERE is_delete = FALSE ORDER BY created_at DESC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pekerjaanList []models.PekerjaanAlumni
+	for rows.Next() {
+		var p models.PekerjaanAlumni
+		if err := rows.Scan(&p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan, &p.BidangIndustri, &p.LokasiKerja, &p.GajiRange, &p.TanggalMulaiKerja, &p.TanggalSelesaiKerja, &p.StatusPekerjaan, &p.DeskripsiPekerjaan, &p.CreatedAt, &p.UpdatedAt, &p.IsDeleted); err != nil {
+			return nil, err
+		}
+		pekerjaanList = append(pekerjaanList, p)
+	}
+	return pekerjaanList, nil
+}
+
+func (r *PekerjaanRepository) GetPekerjaanByID(id int) (*models.PekerjaanAlumni, error) {
+	var p models.PekerjaanAlumni
+	err := r.DB.QueryRow("SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range, tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at FROM pekerjaan_alumni WHERE id = $1", id).Scan(&p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan, &p.BidangIndustri, &p.LokasiKerja, &p.GajiRange, &p.TanggalMulaiKerja, &p.TanggalSelesaiKerja, &p.StatusPekerjaan, &p.DeskripsiPekerjaan, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *PekerjaanRepository) GetPekerjaanByAlumniID(alumniID int) ([]models.PekerjaanAlumni, error) {
+	rows, err := r.DB.Query("SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range, tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at FROM pekerjaan_alumni WHERE alumni_id = $1 ORDER BY tanggal_mulai_kerja DESC", alumniID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pekerjaanList []models.PekerjaanAlumni
+	for rows.Next() {
+		var p models.PekerjaanAlumni
+		if err := rows.Scan(&p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan, &p.BidangIndustri, &p.LokasiKerja, &p.GajiRange, &p.TanggalMulaiKerja, &p.TanggalSelesaiKerja, &p.StatusPekerjaan, &p.DeskripsiPekerjaan, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		pekerjaanList = append(pekerjaanList, p)
+	}
+	return pekerjaanList, nil
+}
+
+func (r *PekerjaanRepository) CreatePekerjaan(p *models.PekerjaanAlumni) (int, error) {
+	var id int
+	err := r.DB.QueryRow(
+		`INSERT INTO pekerjaan_alumni (alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range, tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+		p.AlumniID, p.NamaPerusahaan, p.PosisiJabatan, p.BidangIndustri, p.LokasiKerja, p.GajiRange, p.TanggalMulaiKerja, p.TanggalSelesaiKerja, p.StatusPekerjaan, p.DeskripsiPekerjaan, time.Now(), time.Now(),
+	).Scan(&id)
+	return id, err
+}
+
+func (r *PekerjaanRepository) UpdatePekerjaan(id int, p *models.PekerjaanAlumni) (int64, error) {
+	result, err := r.DB.Exec(
+		`UPDATE pekerjaan_alumni SET nama_perusahaan = $1, posisi_jabatan = $2, bidang_industri = $3, lokasi_kerja = $4, gaji_range = $5, tanggal_mulai_kerja = $6, tanggal_selesai_kerja = $7, status_pekerjaan = $8, deskripsi_pekerjaan = $9, updated_at = $10 
+		 WHERE id = $11`,
+		p.NamaPerusahaan, p.PosisiJabatan, p.BidangIndustri, p.LokasiKerja, p.GajiRange, p.TanggalMulaiKerja, p.TanggalSelesaiKerja, p.StatusPekerjaan, p.DeskripsiPekerjaan, time.Now(), id,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+func (r *PekerjaanRepository) SoftDeletePekerjaan(id int, deletedBy int) (int64, error) {
+	now := time.Now()
+	query := `
+        UPDATE pekerjaan_alumni
+        SET is_delete = TRUE,
+            deleted_at = $1,
+            deleted_by = $2
+        WHERE id = $3 AND is_delete = FALSE
+    `
+	result, err := r.DB.Exec(query, now, deletedBy, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+
+// Untuk admin
+func (r *PekerjaanRepository) TrashAllPekerjaan() ([]models.PekerjaanAlumni, error) {
+    rows, err := r.DB.Query(`
+        SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri,
+               lokasi_kerja, gaji_range, tanggal_mulai_kerja, tanggal_selesai_kerja,
+               status_pekerjaan, deskripsi_pekerjaan, created_at, updated_at,
+               is_delete, deleted_at, deleted_by
+        FROM pekerjaan_alumni
+        WHERE is_delete = true
+        ORDER BY deleted_at DESC
+    `)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var list []models.PekerjaanAlumni
+    for rows.Next() {
+        var p models.PekerjaanAlumni
+        if err := rows.Scan(
+            &p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan, &p.BidangIndustri,
+            &p.LokasiKerja, &p.GajiRange, &p.TanggalMulaiKerja, &p.TanggalSelesaiKerja,
+            &p.StatusPekerjaan, &p.DeskripsiPekerjaan, &p.CreatedAt, &p.UpdatedAt,
+            &p.IsDeleted, &p.DeletedAt, &p.DeletedBy,
+        ); err != nil {
+            return nil, err
+        }
+        list = append(list, p)
+    }
+    return list, nil
+}
+
+
+// Untuk user
+func (r *PekerjaanRepository) TrashPekerjaanByAlumniID(alumniID int) ([]models.PekerjaanAlumni, error) {
+	rows, err := r.DB.Query(`
+		SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range,
+		       tanggal_mulai_kerja, tanggal_selesai_kerja, status_pekerjaan, deskripsi_pekerjaan,
+		       created_at, updated_at, is_delete
+		FROM pekerjaan_alumni
+		WHERE is_delete = TRUE AND alumni_id = $1
+		ORDER BY created_at DESC
+	`, alumniID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.PekerjaanAlumni
+	for rows.Next() {
+		var p models.PekerjaanAlumni
+		if err := rows.Scan(
+			&p.ID, &p.AlumniID, &p.NamaPerusahaan, &p.PosisiJabatan,
+			&p.BidangIndustri, &p.LokasiKerja, &p.GajiRange,
+			&p.TanggalMulaiKerja, &p.TanggalSelesaiKerja,
+			&p.StatusPekerjaan, &p.DeskripsiPekerjaan,
+			&p.CreatedAt, &p.UpdatedAt, &p.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		list = append(list, p)
+	}
+	return list, nil
+}
+
+
+
+func (r *PekerjaanRepository) IsPekerjaanOwnedByUser(pekerjaanID, alumniID int) (bool, error) {
+	var count int
+	err := r.DB.QueryRow(`
+		SELECT COUNT(*) 
+		FROM pekerjaan_alumni 
+		WHERE id = $1 AND alumni_id = $2
+	`, pekerjaanID, alumniID).Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *PekerjaanRepository) RestorePekerjaanByID(id int) error {
+	_, err := r.DB.Exec(`
+		UPDATE pekerjaan_alumni
+		SET is_delete = FALSE, deleted_at = NULL, deleted_by = ''
+		WHERE id = $1
+	`, id)
+	return err
+}
+
+
+
+func (r *PekerjaanRepository) HardDeletePekerjaanByID(id int) error {
+	_, err := r.DB.Exec(`
+		DELETE FROM pekerjaan_alumni
+		WHERE id = $1 AND is_delete = TRUE
+	`, id)
+	return err
+}
+
+func (r *PekerjaanRepository) IsTrashedPekerjaanOwnedByUser(pekerjaanID, alumniID int) (bool, error) {
+	var count int
+	err := r.DB.QueryRow(`
+		SELECT COUNT(*)
+		FROM pekerjaan_alumni
+		WHERE id = $1 AND alumni_id = $2 AND is_delete = TRUE
+	`, pekerjaanID, alumniID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+

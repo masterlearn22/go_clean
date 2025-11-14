@@ -38,9 +38,10 @@ import (
 
 	"go_clean/config"
 	"go_clean/database"
-	"go_clean/route"
-	"go_clean/app/repository"
-	"go_clean/app/service"
+	routePostgre "go_clean/route/postgresql"
+	routeMongo "go_clean/route/mongodb"
+	repoMongo "go_clean/app/repository/mongodb"
+	serviceMongo "go_clean/app/service/mongodb"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -49,7 +50,7 @@ import (
 	 fiberSwagger "github.com/swaggo/fiber-swagger"
 
 	docs "go_clean/docs"
-	_ "go_clean/docs"
+	// _ "go_clean/docs"
 )
 
 // @title User API
@@ -106,19 +107,19 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Welcome to Alumni API 🚀")
 	})
-	route.SetupAuthMongoRoutes(app, database.MongoDB)
+	routeMongo.SetupAuthMongoRoutes(app, database.MongoDB)
 
 
-	// 7️7 Register routes (Postgres + Mongo)
-	route.SetupPekerjaanMongoRoutes(app, database.MongoDB)
-	route.SetupAlumniMongoRoutes(app, database.MongoDB)
-	route.SetupRoutes(app, database.DB, database.MongoDB)
+	// 7️ Register routes (Postgres + Mongo)
+	routeMongo.SetupPekerjaanMongoRoutes(app, database.MongoDB)
+	routeMongo.SetupAlumniMongoRoutes(app, database.MongoDB)
+	routePostgre.SetupRoutes(app, database.DB)
 
 	// 8 Tambahkan fitur Upload File
 	app.Static("/uploads", "./uploads") // agar file bisa diakses langsung via URL
-	uploadRepo := repository.NewFileRepository(database.MongoDB)
-	uploadService := service.NewFileService(uploadRepo, "./uploads")
-	route.SetupFileRoutes(app, uploadService)
+	uploadRepo := repoMongo.NewFileRepository(database.MongoDB)
+	uploadService := serviceMongo.NewFileService(uploadRepo, "./uploads")
+	routeMongo.SetupFileRoutes(app, uploadService)
 
 	// 9 Start server
 	port := os.Getenv("APP_PORT")
