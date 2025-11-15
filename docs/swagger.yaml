@@ -1,5 +1,37 @@
 basePath: /api/v1
 definitions:
+  go_clean_app_models_mongodb.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  go_clean_app_models_postgresql.LoginRequest:
+    properties:
+      password:
+        example: "1234567890"
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  models.AdminCreateUserRequest:
+    properties:
+      alumni_id:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      role:
+        description: admin/user
+        type: string
+      username:
+        type: string
+    type: object
   models.Alumni:
     properties:
       alamat:
@@ -104,15 +136,6 @@ definitions:
       uploaded_at:
         type: string
     type: object
-  models.LoginRequest:
-    properties:
-      password:
-        example: "1234567890"
-        type: string
-      username:
-        example: admin
-        type: string
-    type: object
   models.LoginResponse:
     properties:
       token:
@@ -199,6 +222,15 @@ definitions:
       tanggal_mulai_kerja:
         type: string
       tanggal_selesai_kerja:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
         type: string
     type: object
   models.User:
@@ -726,7 +758,33 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.LoginRequest'
+          $ref: '#/definitions/go_clean_app_models_postgresql.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /login-mongo:
+    post:
+      consumes:
+      - application/json
+      description: Mengembalikan JWT token
+      parameters:
+      - description: Login Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/go_clean_app_models_mongodb.LoginRequest'
       produces:
       - application/json
       responses:
@@ -1195,6 +1253,78 @@ paths:
       summary: Ambil semua data yang terhapus (soft delete)
       tags:
       - Pekerjaan-PostgresSQL
+  /register-admin:
+    post:
+      consumes:
+      - application/json
+      description: Admin membuat user baru atau admin baru
+      parameters:
+      - description: User Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminCreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create user (Admin Only)
+      tags:
+      - Admin
+  /register-postgre:
+    post:
+      consumes:
+      - application/json
+      description: Pendaftaran akun user baru (role otomatis = user)
+      parameters:
+      - description: Register Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Register berhasil dan token dikembalikan
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Register user baru
+      tags:
+      - Auth
 schemes:
 - http
 securityDefinitions:
@@ -1206,6 +1336,8 @@ swagger: "2.0"
 tags:
 - description: Endpoint untuk autentikasi dan login user
   name: Auth
+- description: Endpoint untuk Membuat user baru (Admin Only)
+  name: Admin
 - description: Endpoint untuk data alumni
   name: Alumni-Mongo
 - description: Endpoint untuk data pekerjaan alumni (MongoDB)

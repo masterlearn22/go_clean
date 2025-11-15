@@ -7,10 +7,15 @@ import (
 )
 
 type LoginMongo struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Username  string             `bson:"username" json:"username"`
-	Email     string             `bson:"email" json:"email"`
-	PasswordHash  string             `bson:"password_hash" json:"-"` // hash
-	Role      string             `bson:"role" json:"role"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+	ID        		primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Username  		string             `bson:"username" json:"username"`
+	Email     		string             `bson:"email" json:"email"`
+	PasswordHash  	string             `bson:"password_hash" json:"-"` // hash
+	Role      		string             `bson:"role" json:"role"`
+	CreatedAt 		time.Time          `bson:"created_at" json:"created_at"`
+}
+
+type LoginRequest struct {
+    Username string `json:"username"`
+    Password string `json:"password"`
 }

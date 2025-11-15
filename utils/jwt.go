@@ -33,7 +33,14 @@ func GenerateToken(u pgModel.User) (string, error) {
     return tok.SignedString(jwtCfg.Secret)
 }
 
+var MockGenerateTokenMongo func(u mongoModel.LoginMongo) (string, error)
+
 func GenerateTokenMongo(u mongoModel.LoginMongo) (string, error) {
+
+     if MockGenerateTokenMongo != nil {
+        return MockGenerateTokenMongo(u)
+    }
+
     jwtCfg := config.LoadJWT()
 
     claims := pgModel.JWTClaims{
