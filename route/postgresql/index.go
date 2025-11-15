@@ -16,14 +16,16 @@ func SetupRoutes(app *fiber.App, db *sql.DB) {
 	// =======================
 	alumniRepo := &repository.AlumniRepository{DB: db}
 	pekerjaanRepo := &repository.PekerjaanRepository{DB: db}
-	userRepo := &repository.UserRepository{DB: db}
+
+	authRepo := &repository.AuthRepository{DB: db}
 
 	// =======================
 	// SERVICES
 	// =======================
 	alumniService := &service.AlumniService{Repo: alumniRepo}
 	pekerjaanService := &service.PekerjaanService{Repo: pekerjaanRepo}
-	userService := &service.UserService{Repo: userRepo}
+	authService := &service.AuthService{Repo: authRepo}
+	// userService := &service.UserService{Repo: userRepo}
 
 	// =======================
 	// ROOT
@@ -34,15 +36,14 @@ func SetupRoutes(app *fiber.App, db *sql.DB) {
 	// PUBLIC
 	// =======================
 	api := app.Group("/api")
-	api.Post("/login", userService.LoginUser)
-	api.Post("/register", userService.RegisterUser)
+	api.Post("/login-postgre", authService.LoginUser)
+	api.Post("/register-postgre", authService.RegisterUser)
 
 	// =======================
 	// PROTECTED
 	// =======================
 	auth := api.Group("", middleware.AuthRequired())
-
-	auth.Post("/register-admin", middleware.AdminOnly(), userService.AdminCreateUser)
+	auth.Post("/register-admin", middleware.AdminOnly(), authService.AdminCreateUser)
 	auth.Get("/pekerjaan-pag", pekerjaanService.GetPekerjaanList)
 	auth.Get("/alumni-pag", alumniService.GetAlumniList)
 
